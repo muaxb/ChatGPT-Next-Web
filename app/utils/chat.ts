@@ -13,42 +13,52 @@ export function compressImage(file: File, maxSize: number): Promise<string> {
         let quality = 0.9;
         let dataUrl;
 
-        do {
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.clearRect(0, 0, canvas.width, canvas.height);
-          ctx?.drawImage(image, 0, 0, width, height);
-          dataUrl = canvas.toDataURL("image/jpeg", quality);
+        try {
+          do {
+            canvas.width = width;
+            canvas.height = height;
+            ctx?.clearRect(0, 0, canvas.width, canvas.height);
+            ctx?.drawImage(image, 0, 0, width, height);
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
 
-          if (dataUrl.length < maxSize) break;
+            if (dataUrl.length < maxSize) break;
 
-          if (quality > 0.5) {
-            // Prioritize quality reduction
-            quality -= 0.1;
-          } else {
-            // Then reduce the size
-            width *= 0.9;
-            height *= 0.9;
-          }
-        } while (dataUrl.length > maxSize);
+            if (quality > 0.5) {
+              quality -= 0.1;
+            } else {
+              width *= 0.9;
+              height *= 0.9;
+            }
+          } while (dataUrl.length > maxSize);
 
-        resolve(dataUrl);
+          resolve(dataUrl);
+        } catch (error) {
+          console.error("Error during image compression:", error);
+          reject(error);
+        }
       };
-      image.onerror = reject;
+      image.onerror = (error) => {
+        console.error("Error loading image:", error);
+        reject(error);
+      };
       image.src = readerEvent.target.result;
     };
-    reader.onerror = reject;
+    reader.onerror = (error) => {
+      console.error("Error reading file:", error);
+      reject(error);
+    };
 
-    if (file.type.includes("heic")) {
+    if (file.type === "image/heic" || file.type === "image/heif" || file.name.endsWith(".heic") || file.name.endsWith(".heif")) {
       heic2any({ blob: file, toType: "image/jpeg" })
         .then((blob) => {
           reader.readAsDataURL(blob as Blob);
         })
         .catch((e) => {
+          console.error("Error converting HEIC to JPEG:", e);
           reject(e);
         });
+    } else {
+      reader.readAsDataURL(file);
     }
-
-    reader.readAsDataURL(file);
   });
 }
