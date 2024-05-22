@@ -8,7 +8,6 @@ import React, {
   Fragment,
   RefObject,
 } from "react";
-
 import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
 import RenameIcon from "../icons/rename.svg";
@@ -30,14 +29,12 @@ import EditIcon from "../icons/rename.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
 import ImageIcon from "../icons/image.svg";
-
 import LightIcon from "../icons/light.svg";
 import DarkIcon from "../icons/dark.svg";
 import AutoIcon from "../icons/auto.svg";
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
 import RobotIcon from "../icons/robot.svg";
-
 import {
   ChatMessage,
   SubmitKey,
@@ -50,7 +47,6 @@ import {
   DEFAULT_TOPIC,
   ModelType,
 } from "../store";
-
 import {
   copyToClipboard,
   selectOrCopy,
@@ -60,18 +56,13 @@ import {
   getMessageImages,
   isVisionModel,
 } from "../utils";
-
 import { compressImage } from "@/app/utils/chat";
-
 import dynamic from "next/dynamic";
-
 import { ChatControllerPool } from "../client/controller";
 import { Prompt, usePromptStore } from "../store/prompt";
 import Locale from "../locales";
-
 import { IconButton } from "./button";
 import styles from "./chat.module.scss";
-
 import {
   List,
   ListItem,
@@ -98,17 +89,14 @@ import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import { MultimodalContent } from "../client/api";
-
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
 });
-
 export function SessionConfigModel(props: { onClose: () => void }) {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const maskStore = useMaskStore();
   const navigate = useNavigate();
-
   return (
     <div className="modal-mask">
       <Modal
@@ -166,7 +154,6 @@ export function SessionConfigModel(props: { onClose: () => void }) {
     </div>
   );
 }
-
 function PromptToast(props: {
   showToast?: boolean;
   showModal?: boolean;
@@ -175,7 +162,6 @@ function PromptToast(props: {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const context = session.mask.context;
-
   return (
     <div className={styles["prompt-toast"]} key="prompt-toast">
       {props.showToast && (
@@ -196,12 +182,10 @@ function PromptToast(props: {
     </div>
   );
 }
-
 function useSubmitHandler() {
   const config = useAppConfig();
   const submitKey = config.submitKey;
   const isComposing = useRef(false);
-
   useEffect(() => {
     const onCompositionStart = () => {
       isComposing.current = true;
@@ -209,16 +193,13 @@ function useSubmitHandler() {
     const onCompositionEnd = () => {
       isComposing.current = false;
     };
-
     window.addEventListener("compositionstart", onCompositionStart);
     window.addEventListener("compositionend", onCompositionEnd);
-
     return () => {
       window.removeEventListener("compositionstart", onCompositionStart);
       window.removeEventListener("compositionend", onCompositionEnd);
     };
   }, []);
-
   const shouldSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Fix Chinese input method "Enter" on Safari
     if (e.keyCode == 229) return false;
@@ -237,15 +218,12 @@ function useSubmitHandler() {
         !e.metaKey)
     );
   };
-
   return {
     submitKey,
     shouldSubmit,
   };
 }
-
 export type RenderPompt = Pick<Prompt, "title" | "content">;
-
 export function PromptHints(props: {
   prompts: RenderPompt[];
   onPromptSelect: (prompt: RenderPompt) => void;
@@ -253,11 +231,9 @@ export function PromptHints(props: {
   const noPrompts = props.prompts.length === 0;
   const [selectIndex, setSelectIndex] = useState(0);
   const selectedRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     setSelectIndex(0);
   }, [props.prompts.length]);
-
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (noPrompts || e.metaKey || e.altKey || e.ctrlKey) {
@@ -276,7 +252,6 @@ export function PromptHints(props: {
           block: "center",
         });
       };
-
       if (e.key === "ArrowUp") {
         changeIndex(1);
       } else if (e.key === "ArrowDown") {
@@ -288,13 +263,10 @@ export function PromptHints(props: {
         }
       }
     };
-
     window.addEventListener("keydown", onKeyDown);
-
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.prompts.length, selectIndex]);
-
   if (noPrompts) return null;
   return (
     <div className={styles["prompt-hints"]}>
@@ -316,10 +288,8 @@ export function PromptHints(props: {
     </div>
   );
 }
-
 function ClearContextDivider() {
   const chatStore = useChatStore();
-
   return (
     <div
       className={styles["clear-context"]}
@@ -336,7 +306,6 @@ function ClearContextDivider() {
     </div>
   );
 }
-
 function ChatAction(props: {
   text: string;
   icon: JSX.Element;
@@ -348,7 +317,6 @@ function ChatAction(props: {
     full: 16,
     icon: 16,
   });
-
   function updateWidth() {
     if (!iconRef.current || !textRef.current) return;
     const getWidth = (dom: HTMLDivElement) => dom.getBoundingClientRect().width;
@@ -359,7 +327,6 @@ function ChatAction(props: {
       icon: iconWidth,
     });
   }
-
   return (
     <div
       className={`${styles["chat-input-action"]} clickable`}
@@ -385,13 +352,11 @@ function ChatAction(props: {
     </div>
   );
 }
-
 function useScrollToBottom(
   scrollRef: RefObject<HTMLDivElement>,
   detach: boolean = false,
 ) {
   // for auto-scroll
-
   const [autoScroll, setAutoScroll] = useState(true);
   function scrollDomToBottom() {
     const dom = scrollRef.current;
@@ -402,14 +367,12 @@ function useScrollToBottom(
       });
     }
   }
-
   // auto scroll
   useEffect(() => {
     if (autoScroll && !detach) {
       scrollDomToBottom();
     }
   });
-
   return {
     scrollRef,
     autoScroll,
@@ -417,7 +380,6 @@ function useScrollToBottom(
     scrollDomToBottom,
   };
 }
-
 export function ChatActions(props: {
   uploadImage: () => void;
   setAttachImages: (images: string[]) => void;
@@ -431,7 +393,6 @@ export function ChatActions(props: {
   const config = useAppConfig();
   const navigate = useNavigate();
   const chatStore = useChatStore();
-
   // switch themes
   const theme = config.theme;
   function nextTheme() {
@@ -441,18 +402,15 @@ export function ChatActions(props: {
     const nextTheme = themes[nextIndex];
     config.update((config) => (config.theme = nextTheme));
   }
-
   // stop all responses
   const couldStop = ChatControllerPool.hasPending();
   const stopAll = () => ChatControllerPool.stopAll();
-
   // switch model
   const currentModel = chatStore.currentSession().mask.modelConfig.model;
   const allModels = useAllModels();
   const models = useMemo(() => {
     const filteredModels = allModels.filter((m) => m.available);
     const defaultModel = filteredModels.find((m) => m.isDefault);
-
     if (defaultModel) {
       const arr = [
         defaultModel,
@@ -465,7 +423,6 @@ export function ChatActions(props: {
   }, [allModels]);
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [showUploadImage, setShowUploadImage] = useState(false);
-
   useEffect(() => {
     const show = isVisionModel(currentModel);
     setShowUploadImage(show);
@@ -473,7 +430,6 @@ export function ChatActions(props: {
       props.setAttachImages([]);
       props.setUploading(false);
     }
-
     // if current model is not available
     // switch to first available model
     const isUnavaliableModel = !models.some((m) => m.name === currentModel);
@@ -488,7 +444,6 @@ export function ChatActions(props: {
       showToast(nextModel);
     }
   }, [chatStore, currentModel, models]);
-
   return (
     <div className={styles["chat-input-actions"]}>
       {couldStop && (
@@ -512,7 +467,6 @@ export function ChatActions(props: {
           icon={<SettingsIcon />}
         />
       )}
-
       {showUploadImage && (
         <ChatAction
           onClick={props.uploadImage}
@@ -535,13 +489,11 @@ export function ChatActions(props: {
           </>
         }
       />
-
       <ChatAction
         onClick={props.showPromptHints}
         text={Locale.Chat.InputActions.Prompt}
         icon={<PromptIcon />}
       />
-
       <ChatAction
         onClick={() => {
           navigate(Path.Masks);
@@ -549,7 +501,6 @@ export function ChatActions(props: {
         text={Locale.Chat.InputActions.Masks}
         icon={<MaskIcon />}
       />
-
       <ChatAction
         text={Locale.Chat.InputActions.Clear}
         icon={<BreakIcon />}
@@ -564,13 +515,11 @@ export function ChatActions(props: {
           });
         }}
       />
-
       <ChatAction
         onClick={() => setShowModelSelector(true)}
         text={currentModel}
         icon={<RobotIcon />}
       />
-
       {showModelSelector && (
         <Selector
           defaultSelectedValue={currentModel}
@@ -592,12 +541,10 @@ export function ChatActions(props: {
     </div>
   );
 }
-
 export function EditMessageModal(props: { onClose: () => void }) {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const [messages, setMessages] = useState(session.messages.slice());
-
   return (
     <div className="modal-mask">
       <Modal
@@ -654,7 +601,6 @@ export function EditMessageModal(props: { onClose: () => void }) {
     </div>
   );
 }
-
 export function DeleteImageButton(props: { deleteImage: () => void }) {
   return (
     <div className={styles["delete-image"]} onClick={props.deleteImage}>
@@ -662,17 +608,13 @@ export function DeleteImageButton(props: { deleteImage: () => void }) {
     </div>
   );
 }
-
 function _Chat() {
   type RenderMessage = ChatMessage & { preview?: boolean };
-
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const config = useAppConfig();
   const fontSize = config.fontSize;
-
   const [showExport, setShowExport] = useState(false);
-
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -693,7 +635,6 @@ function _Chat() {
   const navigate = useNavigate();
   const [attachImages, setAttachImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-
   // prompt hints
   const promptStore = usePromptStore();
   const [promptHints, setPromptHints] = useState<RenderPompt[]>([]);
@@ -705,7 +646,6 @@ function _Chat() {
     100,
     { leading: true, trailing: true },
   );
-
   // auto grow input
   const [inputRows, setInputRows] = useState(2);
   const measure = useDebouncedCallback(
@@ -723,10 +663,8 @@ function _Chat() {
       trailing: true,
     },
   );
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(measure, [userInput]);
-
   // chat commands shortcuts
   const chatCommands = useChatCommand({
     new: () => chatStore.newSession(),
@@ -739,13 +677,11 @@ function _Chat() {
       ),
     del: () => chatStore.deleteSession(chatStore.currentSessionIndex),
   });
-
   // only search prompts when user input is short
   const SEARCH_TEXT_LIMIT = 30;
   const onInput = (text: string) => {
     setUserInput(text);
     const n = text.trim().length;
-
     // clear search results
     if (n === 0) {
       setPromptHints([]);
@@ -759,7 +695,6 @@ function _Chat() {
       }
     }
   };
-
   const doSubmit = (userInput: string) => {
     if (userInput.trim() === "") return;
     const matchCommand = chatCommands.match(userInput);
@@ -780,11 +715,9 @@ function _Chat() {
     if (!isMobileScreen) inputRef.current?.focus();
     setAutoScroll(true);
   };
-
   const onPromptSelect = (prompt: RenderPompt) => {
     setTimeout(() => {
       setPromptHints([]);
-
       const matchedChatCommand = chatCommands.match(prompt.content);
       if (matchedChatCommand.matched) {
         // if user is selecting a chat command, just trigger it
@@ -797,12 +730,10 @@ function _Chat() {
       inputRef.current?.focus();
     }, 30);
   };
-
   // stop response
   const onUserStop = (messageId: string) => {
     ChatControllerPool.stop(session.id, messageId);
   };
-
   useEffect(() => {
     chatStore.updateCurrentSession((session) => {
       const stopTiming = Date.now() - REQUEST_TIMEOUT_MS;
@@ -812,7 +743,6 @@ function _Chat() {
           if (m.streaming) {
             m.streaming = false;
           }
-
           if (m.content.length === 0) {
             m.isError = true;
             m.content = prettyObject({
@@ -822,7 +752,6 @@ function _Chat() {
           }
         }
       });
-
       // auto sync mask config from global config
       if (session.mask.syncGlobalConfig) {
         console.log("[Mask] syncing from global, name = ", session.mask.name);
@@ -831,7 +760,6 @@ function _Chat() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // check if should send message
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // if ArrowUp and no userInput, fill with last input
@@ -855,41 +783,33 @@ function _Chat() {
       if (userInput.length === 0) {
         setUserInput(getMessageTextContent(message));
       }
-
       e.preventDefault();
     }
   };
-
   const deleteMessage = (msgId?: string) => {
     chatStore.updateCurrentSession(
       (session) =>
         (session.messages = session.messages.filter((m) => m.id !== msgId)),
     );
   };
-
   const onDelete = (msgId: string) => {
     deleteMessage(msgId);
   };
-
   const onResend = (message: ChatMessage) => {
     // when it is resending a message
     // 1. for a user's message, find the next bot response
     // 2. for a bot's message, find the last user's input
     // 3. delete original user input and bot's message
     // 4. resend the user's input
-
     const resendingIndex = session.messages.findIndex(
       (m) => m.id === message.id,
     );
-
     if (resendingIndex < 0 || resendingIndex >= session.messages.length) {
       console.error("[Chat] failed to find resending message", message);
       return;
     }
-
     let userMessage: ChatMessage | undefined;
     let botMessage: ChatMessage | undefined;
-
     if (message.role === "assistant") {
       // if it is resending a bot's message, find the user input for it
       botMessage = message;
@@ -909,16 +829,13 @@ function _Chat() {
         }
       }
     }
-
     if (userMessage === undefined) {
       console.error("[Chat] failed to resend", message);
       return;
     }
-
     // delete the original messages
     deleteMessage(userMessage.id);
     deleteMessage(botMessage?.id);
-
     // resend the message
     setIsLoading(true);
     const textContent = getMessageTextContent(userMessage);
@@ -926,12 +843,10 @@ function _Chat() {
     chatStore.onUserInput(textContent, images).then(() => setIsLoading(false));
     inputRef.current?.focus();
   };
-
   const onPinMessage = (message: ChatMessage) => {
     chatStore.updateCurrentSession((session) =>
       session.mask.context.push(message),
     );
-
     showToast(Locale.Chat.Actions.PinToastContent, {
       text: Locale.Chat.Actions.PinToastAction,
       onClick: () => {
@@ -939,12 +854,10 @@ function _Chat() {
       },
     });
   };
-
   const context: RenderMessage[] = useMemo(() => {
     return session.mask.hideContext ? [] : session.mask.context.slice();
   }, [session.mask.context, session.mask.hideContext]);
   const accessStore = useAccessStore();
-
   if (
     context.length === 0 &&
     session.messages.at(0)?.content !== BOT_HELLO.content
@@ -955,7 +868,6 @@ function _Chat() {
     }
     context.push(copiedHello);
   }
-
   // preview messages
   const renderMessages = useMemo(() => {
     return context
@@ -993,7 +905,6 @@ function _Chat() {
     session.messages,
     userInput,
   ]);
-
   const [msgRenderIndex, _setMsgRenderIndex] = useState(
     Math.max(0, renderMessages.length - CHAT_PAGE_SIZE),
   );
@@ -1002,7 +913,6 @@ function _Chat() {
     newIndex = Math.max(0, newIndex);
     _setMsgRenderIndex(newIndex);
   }
-
   const messages = useMemo(() => {
     const endRenderIndex = Math.min(
       msgRenderIndex + 3 * CHAT_PAGE_SIZE,
@@ -1010,25 +920,20 @@ function _Chat() {
     );
     return renderMessages.slice(msgRenderIndex, endRenderIndex);
   }, [msgRenderIndex, renderMessages]);
-
   const onChatBodyScroll = (e: HTMLElement) => {
     const bottomHeight = e.scrollTop + e.clientHeight;
     const edgeThreshold = e.clientHeight;
-
     const isTouchTopEdge = e.scrollTop <= edgeThreshold;
     const isTouchBottomEdge = bottomHeight >= e.scrollHeight - edgeThreshold;
     const isHitBottom =
       bottomHeight >= e.scrollHeight - (isMobileScreen ? 4 : 10);
-
     const prevPageMsgIndex = msgRenderIndex - CHAT_PAGE_SIZE;
     const nextPageMsgIndex = msgRenderIndex + CHAT_PAGE_SIZE;
-
     if (isTouchTopEdge && !isTouchBottomEdge) {
       setMsgRenderIndex(prevPageMsgIndex);
     } else if (isTouchBottomEdge) {
       setMsgRenderIndex(nextPageMsgIndex);
     }
-
     setHitBottom(isHitBottom);
     setAutoScroll(isHitBottom);
   };
@@ -1036,20 +941,15 @@ function _Chat() {
     setMsgRenderIndex(renderMessages.length - CHAT_PAGE_SIZE);
     scrollDomToBottom();
   }
-
   // clear context index = context length + index in messages
   const clearContextIndex =
     (session.clearContextIndex ?? -1) >= 0
       ? session.clearContextIndex! + context.length - msgRenderIndex
       : -1;
-
   const [showPromptModal, setShowPromptModal] = useState(false);
-
   const clientConfig = useMemo(() => getClientConfig(), []);
-
   const autoFocus = !isMobileScreen; // wont auto focus on mobile screen
   const showMaxIcon = !isMobileScreen && !clientConfig?.isApp;
-
   useCommand({
     fill: setUserInput,
     submit: (text) => {
@@ -1066,15 +966,12 @@ function _Chat() {
     },
     settings: (text) => {
       if (accessStore.disableFastLink) return;
-
       try {
         const payload = JSON.parse(text) as {
           key?: string;
           url?: string;
         };
-
         console.log("[Command] got settings from url: ", payload);
-
         if (payload.key || payload.url) {
           showConfirm(
             Locale.URLCommand.Settings +
@@ -1097,10 +994,8 @@ function _Chat() {
       }
     },
   });
-
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
-
   // remember unfinished input
   useEffect(() => {
     // try to load from local storage
@@ -1110,14 +1005,12 @@ function _Chat() {
       setUserInput(mayBeUnfinishedInput);
       localStorage.removeItem(key);
     }
-
     const dom = inputRef.current;
     return () => {
       localStorage.setItem(key, dom?.value ?? "");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
       const currentModel = chatStore.currentSession().mask.modelConfig.model;
@@ -1149,7 +1042,6 @@ function _Chat() {
               })),
             );
             const imagesLength = images.length;
-
             if (imagesLength > 3) {
               images.splice(3, imagesLength - 3);
             }
@@ -1160,50 +1052,49 @@ function _Chat() {
     },
     [attachImages, chatStore],
   );
-
   async function uploadImage() {
     const images: string[] = [];
     images.push(...attachImages);
 
-    images.push(
-      ...(await new Promise<string[]>((res, rej) => {
+    try {
+      const newImages = await new Promise<string[]>((res, rej) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.accept =
-          "image/png, image/jpeg, image/webp, image/heic, image/heif";
+        fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif";
         fileInput.multiple = true;
         fileInput.onchange = (event: any) => {
           setUploading(true);
           const files = event.target.files;
           const imagesData: string[] = [];
           for (let i = 0; i < files.length; i++) {
-            const file = event.target.files[i];
+            const file = files[i];
             compressImage(file, 256 * 1024)
               .then((dataUrl) => {
                 imagesData.push(dataUrl);
-                if (
-                  imagesData.length === 3 ||
-                  imagesData.length === files.length
-                ) {
+                if (imagesData.length === 3 || imagesData.length === files.length) {
                   setUploading(false);
                   res(imagesData);
                 }
               })
               .catch((e) => {
+                console.error("Error compressing image:", e);
                 setUploading(false);
                 rej(e);
               });
           }
         };
         fileInput.click();
-      })),
-    );
+      });
 
-    const imagesLength = images.length;
-    if (imagesLength > 3) {
-      images.splice(3, imagesLength - 3);
+      images.push(...newImages);
+      if (images.length > 3) {
+        images.splice(3, images.length - 3);
+      }
+      setAttachImages(images);
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      setUploading(false);
     }
-    setAttachImages(images);
   }
 
   return (
@@ -1221,12 +1112,22 @@ function _Chat() {
             </div>
           </div>
         )}
-
         <div className={`window-header-title ${styles["chat-body-title"]}`}>
           <div
             className={`window-header-main-title ${styles["chat-body-main-title"]}`}
             onClickCapture={() => setIsEditingMessage(true)}
           >
+
+    
+          
+            
+    
+
+          
+          Expand Down
+    
+    
+  
             {!session.topic ? DEFAULT_TOPIC : session.topic}
           </div>
           <div className="window-header-sub-title">
@@ -1267,14 +1168,12 @@ function _Chat() {
             </div>
           )}
         </div>
-
         <PromptToast
           showToast={!hitBottom}
           showModal={showPromptModal}
           setShowModal={setShowPromptModal}
         />
       </div>
-
       <div
         className={styles["chat-body"]}
         ref={scrollRef}
@@ -1293,9 +1192,7 @@ function _Chat() {
             !(message.preview || message.content.length === 0) &&
             !isContext;
           const showTyping = message.preview || message.streaming;
-
           const shouldShowClearContextDivider = i === clearContextIndex - 1;
-
           return (
             <Fragment key={message.id}>
               <div
@@ -1357,7 +1254,6 @@ function _Chat() {
                         </>
                       )}
                     </div>
-
                     {showActions && (
                       <div className={styles["chat-message-actions"]}>
                         <div className={styles["chat-input-actions"]}>
@@ -1374,13 +1270,11 @@ function _Chat() {
                                 icon={<ResetIcon />}
                                 onClick={() => onResend(message)}
                               />
-
                               <ChatAction
                                 text={Locale.Chat.Actions.Delete}
                                 icon={<DeleteIcon />}
                                 onClick={() => onDelete(message.id ?? i)}
                               />
-
                               <ChatAction
                                 text={Locale.Chat.Actions.Pin}
                                 icon={<PinIcon />}
@@ -1454,7 +1348,6 @@ function _Chat() {
                       </div>
                     )}
                   </div>
-
                   <div className={styles["chat-message-action-date"]}>
                     {isContext
                       ? Locale.Chat.IsContext
@@ -1467,10 +1360,8 @@ function _Chat() {
           );
         })}
       </div>
-
       <div className={styles["chat-input-panel"]}>
         <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} />
-
         <ChatActions
           uploadImage={uploadImage}
           setAttachImages={setAttachImages}
@@ -1485,7 +1376,6 @@ function _Chat() {
               setPromptHints([]);
               return;
             }
-
             inputRef.current?.focus();
             setUserInput("/");
             onSearch("");
@@ -1548,11 +1438,9 @@ function _Chat() {
           />
         </label>
       </div>
-
       {showExport && (
         <ExportMessageModal onClose={() => setShowExport(false)} />
       )}
-
       {isEditingMessage && (
         <EditMessageModal
           onClose={() => {
@@ -1563,7 +1451,6 @@ function _Chat() {
     </div>
   );
 }
-
 export function Chat() {
   const chatStore = useChatStore();
   const sessionIndex = chatStore.currentSessionIndex;
