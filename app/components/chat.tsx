@@ -1066,20 +1066,32 @@ function _Chat() {
           setUploading(true);
           const files = event.target.files;
           const imagesData: string[] = [];
+          let processedCount = 0;
+
+          const handleFileProcessing = (dataUrl: string | null) => {
+            if (dataUrl) {
+              imagesData.push(dataUrl);
+            }
+            processedCount++;
+            if (processedCount === files.length) {
+              setUploading(false);
+              if (imagesData.length > 0) {
+                res(imagesData);
+              } else {
+                rej(new Error("No images processed successfully"));
+              }
+            }
+          };
+
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
             compressImage(file, 256 * 1024)
               .then((dataUrl) => {
-                imagesData.push(dataUrl);
-                if (imagesData.length === 3 || imagesData.length === files.length) {
-                  setUploading(false);
-                  res(imagesData);
-                }
+                handleFileProcessing(dataUrl);
               })
               .catch((e) => {
                 console.error("Error compressing image:", e);
-                setUploading(false);
-                rej(e);
+                handleFileProcessing(null);
               });
           }
         };
