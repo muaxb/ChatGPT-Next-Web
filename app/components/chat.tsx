@@ -1060,7 +1060,7 @@ function _Chat() {
       const newImages = await new Promise<string[]>((res, rej) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif";
+        fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif, image/gif, image/bmp";
         fileInput.multiple = true;
         fileInput.onchange = (event: any) => {
           setUploading(true);
