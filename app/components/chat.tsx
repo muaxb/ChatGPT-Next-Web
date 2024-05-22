@@ -1165,45 +1165,45 @@ function _Chat() {
     const images: string[] = [];
     images.push(...attachImages);
 
-    try {
-      const newImages = await new Promise<string[]>((res, rej) => {
+    images.push(
+      ...(await new Promise<string[]>((res, rej) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif";
+        fileInput.accept =
+          "image/png, image/jpeg, image/webp, image/heic, image/heif";
         fileInput.multiple = true;
         fileInput.onchange = (event: any) => {
           setUploading(true);
           const files = event.target.files;
           const imagesData: string[] = [];
           for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+            const file = event.target.files[i];
             compressImage(file, 256 * 1024)
               .then((dataUrl) => {
                 imagesData.push(dataUrl);
-                if (imagesData.length === 3 || imagesData.length === files.length) {
+                if (
+                  imagesData.length === 3 ||
+                  imagesData.length === files.length
+                ) {
                   setUploading(false);
                   res(imagesData);
                 }
               })
               .catch((e) => {
-                console.error("Error compressing image:", e);
                 setUploading(false);
                 rej(e);
               });
           }
         };
         fileInput.click();
-      });
-  
-      images.push(...newImages);
-      if (images.length > 3) {
-        images.splice(3, images.length - 3);
-      }
-      setAttachImages(images);
-    } catch (error) {
-      console.error("Error uploading images:", error);
-      setUploading(false);
+      })),
+    );
+
+    const imagesLength = images.length;
+    if (imagesLength > 3) {
+      images.splice(3, imagesLength - 3);
     }
+    setAttachImages(images);
   }
 
   return (
