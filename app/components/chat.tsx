@@ -1095,7 +1095,9 @@ function _Chat() {
               });
           }
         };
-        fileInput.click();
+        setTimeout(() => {
+          fileInput.click();
+        }, 100);
       });
 
       images.push(...newImages);
