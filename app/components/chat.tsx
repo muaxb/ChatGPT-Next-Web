@@ -1057,6 +1057,7 @@ function _Chat() {
     images.push(...attachImages);
 
     try {
+      console.log('Starting image upload process...');
       const newImages = await new Promise<string[]>((res, rej) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -1064,15 +1065,21 @@ function _Chat() {
         fileInput.multiple = true;
         fileInput.onchange = (event: any) => {
           setUploading(true);
+          console.log('File input change event triggered...');
           const files = event.target.files;
+          console.log(`Number of files selected: ${files.length}`);
           const imagesData: string[] = [];
           let processedCount = 0;
 
           const handleFileProcessing = (dataUrl: string | null) => {
             if (dataUrl) {
               imagesData.push(dataUrl);
+              console.log(`Image processed successfully: ${dataUrl.substring(0, 30)}...`);
+            } else {
+              console.warn('Image processing failed for one of the files.');
             }
             processedCount++;
+            console.log(`Processed ${processedCount}/${files.length} files.`);
             if (processedCount === files.length) {
               setUploading(false);
               if (imagesData.length > 0) {
@@ -1085,6 +1092,7 @@ function _Chat() {
 
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
+            console.log(`Processing file: ${file.name}`);
             compressImage(file, 256 * 1024)
               .then((dataUrl) => {
                 handleFileProcessing(dataUrl);
@@ -1096,15 +1104,19 @@ function _Chat() {
           }
         };
         setTimeout(() => {
+          console.log('Triggering file input click...');
           fileInput.click();
         }, 100);
       });
 
       images.push(...newImages);
+      console.log(`New images added: ${newImages.length}`);
       if (images.length > 3) {
         images.splice(3, images.length - 3);
+        console.log(`Trimming images array to 3 items: ${images.length}`);
       }
       setAttachImages(images);
+      console.log('Image upload process completed successfully.');
     } catch (error) {
       console.error("Error uploading images:", error);
       setUploading(false);
