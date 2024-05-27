@@ -1053,75 +1053,66 @@ function _Chat() {
     [attachImages, chatStore],
   );
   async function uploadImage() {
-    const images: string[] = [];
-    images.push(...attachImages);
+    const images: string[] = [...attachImages];
 
     try {
-      console.log('Starting image upload process...');
-      const newImages = await new Promise<string[]>((res, rej) => {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif, image/gif, image/bmp";
-        fileInput.multiple = true;
-        fileInput.onchange = (event: any) => {
-          setUploading(true);
-          console.log('File input change event triggered...');
-          const files = event.target.files;
-          console.log(`Number of files selected: ${files.length}`);
-          const imagesData: string[] = [];
-          let processedCount = 0;
+        const newImages = await new Promise<string[]>((resolve, reject) => {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/png, image/jpeg, image/webp, image/heic, image/heif, image/gif, image/bmp";
+            fileInput.multiple = true;
 
-          const handleFileProcessing = (dataUrl: string | null) => {
-            if (dataUrl) {
-              imagesData.push(dataUrl);
-              console.log(`Image processed successfully: ${dataUrl.substring(0, 30)}...`);
-            } else {
-              console.warn('Image processing failed for one of the files.');
-            }
-            processedCount++;
-            console.log(`Processed ${processedCount}/${files.length} files.`);
-            if (processedCount === files.length) {
-              setUploading(false);
-              if (imagesData.length > 0) {
-                res(imagesData);
-              } else {
-                rej(new Error("No images processed successfully"));
-              }
-            }
-          };
+            fileInput.onchange = async (event: Event) => {
+                setUploading(true);
+                const files = (event.target as HTMLInputElement).files;
 
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            console.log(`Processing file: ${file.name}`);
-            compressImage(file, 256 * 1024)
-              .then((dataUrl) => {
-                handleFileProcessing(dataUrl);
-              })
-              .catch((e) => {
-                console.error("Error compressing image:", e);
-                handleFileProcessing(null);
-              });
-          }
-        };
-        setTimeout(() => {
-          console.log('Triggering file input click...');
-          fileInput.click();
-        }, 100);
-      });
+                if (!files || files.length === 0) {
+                    setUploading(false);
+                    return reject(new Error("No files selected"));
+                }
 
-      images.push(...newImages);
-      console.log(`New images added: ${newImages.length}`);
-      if (images.length > 3) {
-        images.splice(3, images.length - 3);
-        console.log(`Trimming images array to 3 items: ${images.length}`);
-      }
-      setAttachImages(images);
-      console.log('Image upload process completed successfully.');
+                const imagesData: string[] = [];
+                const handleFileProcessing = (dataUrl: string | null, isLast: boolean) => {
+                    if (dataUrl) {
+                        imagesData.push(dataUrl);
+                    }
+                    if (isLast) {
+                        setUploading(false);
+                        if (imagesData.length > 0) {
+                            resolve(imagesData);
+                        } else {
+                            reject(new Error("No images processed successfully"));
+                        }
+                    }
+                };
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const isLast = i === files.length - 1;
+
+                    try {
+                        const dataUrl = await compressImage(file, 256 * 1024);
+                        handleFileProcessing(dataUrl, isLast);
+                    } catch (error) {
+                        handleFileProcessing(null, isLast);
+                    }
+                }
+            };
+
+            setTimeout(() => {
+                fileInput.click();
+            }, 100);
+        });
+
+        images.push(...newImages);
+        if (images.length > 3) {
+            images.splice(3, images.length - 3);
+        }
+        setAttachImages(images);
     } catch (error) {
-      console.error("Error uploading images:", error);
-      setUploading(false);
+        setUploading(false);
     }
-  }
+}
 
   return (
     <div className={styles.chat} key={session.id}>
