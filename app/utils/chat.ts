@@ -1,6 +1,34 @@
 import { CACHE_URL_PREFIX, UPLOAD_URL } from "@/app/constant";
 import { RequestMessage } from "@/app/client/api";
 
+// 自定义的 blobToFile 方法
+function blobToFile(blob: Blob, fileName: string): File {
+  const file = new File([blob], fileName, {
+    type: blob.type,
+    lastModified: Date.now()
+  });
+  return file;
+}
+
+// 转换 heic/heif 图片为 jpg 格式
+export async function convertHeicToJpeg(file: File) {
+  if (file.type.includes("heic") || file.type.includes("heif") || file.name.endsWith(".heic") || file.name.endsWith(".heif")) {
+    try {
+      const heic2any = await import("heic2any");
+      const conversionResult = await heic2any.default({
+        blob: file,
+        toType: "image/jpeg",
+      });
+      const jpegBlob = conversionResult as Blob;
+      return blobToFile(jpegBlob, file.name.replace(/\.[^/.]+$/, ".jpeg"));
+    } catch (error) {
+      console.error("HEIC to JPEG conversion error:", error);
+      throw new Error("Failed to convert HEIC to JPEG");
+    }
+  }
+  return file; // 如果不是 HEIC/HEIF 文件，则直接返回原始文件
+}
+
 export function compressImage(file: Blob, maxSize: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -53,9 +81,9 @@ export function compressImage(file: Blob, maxSize: number): Promise<string> {
       } catch (e) {
         reject(e);
       }
+    } else {
+      reader.readAsDataURL(file);
     }
-
-    reader.readAsDataURL(file);
   });
 }
 
@@ -112,7 +140,8 @@ export function base64Image2Blob(base64Data: string, contentType: string) {
   return new Blob([byteArray], { type: contentType });
 }
 
-export function uploadImage(file: Blob): Promise<string> {
+export async  function uploadImage(file: File): Promise<string> {
+  file = await convertHeicToJpeg(file);
   if (!window._SW_ENABLED) {
     // if serviceWorker register error, using compressImage
     return compressImage(file, 256 * 1024);
